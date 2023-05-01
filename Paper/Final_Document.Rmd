@@ -38,10 +38,23 @@ theme_set(jatheme)
 
 ## Including Plots
 
-You can also embed plots, for example:
+The first step is to identify which datasets recorded the exposure route of administration, then to create a subset with just those DOIs
 
-```{r Wrangling, echo=FALSE}
-plot(pressure)
+```{r Wrangling.attempt 1, echo=FALSE}
+#-----identifying datasets with exposure routes listed-----#
+nikc_processed_1 <- nikc_raw %>%
+  filter(parameter == "Exposure route of administration")
+
+#-----Identify unique DOIs from first processed dataset----#
+unique(nikc_processed_1$datasetId)
+
+
+#-----Created dataset with only DOIs with exposure routes-----#
+#____should be 35 DOIs based on unique DOIs____#
+nikc_processed_2 <- nikc_raw %>%
+  filter(datasetId == "10.1016/j.toxlet.2015.07.001" | datasetId == )
+
+
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
