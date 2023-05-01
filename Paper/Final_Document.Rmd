@@ -1,0 +1,47 @@
+---
+title: "Final Rough Draft"
+author: "Jaleesia Amos"
+date: "`r Sys.Date()`"
+output: pdf_document
+toc: true
+---
+
+```{r nikc.setup, eval=TRUE, echo= TRUE, message=FALSE, warning=falsely }
+#------Load necessary packages-------#
+pacman::p_load(tidyverse, here, knitr)
+
+#------Check working directory-------#
+getwd()
+
+#------Read in dataset-------#
+nikc_raw <- read.csv("./Data/Raw/nikc_raw_20200326.csv", stringsAsFactors = TRUE)
+
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r Build custom theme, eval=TRUE}
+#----Custom theme: change title, axis title, and legend----#
+jatheme <- theme_bw(base_size = 12) + 
+  theme(plot.title = element_text(face ="bold", hjust = 0.5),
+        axis.title = element_text(face = "bold"), 
+        legend.position = "right")
+
+#-----Set theme for environment-----#
+theme_set(jatheme)
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r Wrangling, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
