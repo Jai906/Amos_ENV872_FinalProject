@@ -36,25 +36,65 @@ theme_set(jatheme)
 
 ```
 
-## Including Plots
+## Task 1: Does the route of exposure effect the fate of nanomaterials within exposed organisms
 
-The first step is to identify which datasets recorded the exposure route of administration, then to create a subset with just those DOIs
+The first step is to identify which datasets recorded the exposure route of administration, eliminate exposure routes of administration indicated as dispersion studies, then to create a subset with just those DOIs
 
-```{r Wrangling.attempt 1, echo=FALSE}
+```{r Wrangling.attempt 1, eval=TRUE, echo=TRUE}
 #-----identifying datasets with exposure routes listed-----#
+#______remove dispersion studies______#
 nikc_processed_1 <- nikc_raw %>%
-  filter(parameter == "Exposure route of administration")
+  filter(parameter == "Exposure route of administration") %>%
+  filter(parameterText != "dispersion") %>%
+  filter(parameterText != "Dispersion")
+
+#----Checking that dispersion studies were removed-----#
+unique(nikc_processed_1$parameterText)
 
 #-----Identify unique DOIs from first processed dataset----#
 unique(nikc_processed_1$datasetId)
 
 
-#-----Created dataset with only DOIs with exposure routes-----#
-#____should be 35 DOIs based on unique DOIs____#
+#-----Created subset with DOIs of exposure routes not dispersion-----#
+#____should be 28 DOIs based on unique DOIs____#
 nikc_processed_2 <- nikc_raw %>%
-  filter(datasetId == "10.1016/j.toxlet.2015.07.001" | datasetId == )
+  filter(datasetId == "10.1016/j.toxlet.2015.07.001" | 
+        datasetId == "10.1016/j.ntt.2015.08.006" | 
+        datasetId == "10.1016/j.toxlet.2008.07.020" | 
+        datasetId == "10.1016/j.carbon.2007.03.035" |
+        datasetId == "10.1016/j.taap.2007.03.018" |
+        datasetId == "10.1016/j.tox.2010.07.021" |
+        datasetId == "10.1016/j.taap.2008.12.006" |
+        datasetId == "10.3109/17435390.2010.502978" |
+        datasetId == "10.1016/j.aquatox.2007.02.003" |
+        datasetId == "10.1021/es4046023" |
+        datasetId == "10.2147/IJN.S123345" |
+        datasetId == "10.1016/j.tox.2009.10.017" |
+        datasetId == "10.1002/smll.201301597" |
+        datasetId == "10.1186/s12989-014-0052-6" |
+        datasetId == "10.3390/nano7120441" |
+        datasetId == "10.1016/j.etp.2014.09.005" |
+        datasetId == "10.3109/17435390.2012.719649" |
+        datasetId == "10.1186/1743-8977-10-33" |
+        datasetId == "10.1186/1743-8977-8-24" |
+        datasetId == "10.1021/nn503887r" |
+        datasetId == "10.1093/carcin/bgm243" |
+        datasetId == "10.1093/toxsci/kfp247" |
+        datasetId == "10.1007/s10517-015-2835-7" |
+        datasetId == "10.1093/toxsci/kfs172" |
+        datasetId == "10.3109/17435390.2014.933903" |
+        datasetId == "10.3109/17435390.2013.779757" |
+        datasetId == "10.1177/0192623317732303" |
+        datasetId == "10.1016/j.bbrc.2015.01.130")
 
+#-----Checking DOIs are correct------#
+unique(nikc_processed_2$datasetId)
 
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+```{r Wrangling.attempt 2}
+
+
+```
