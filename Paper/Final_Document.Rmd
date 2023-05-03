@@ -176,4 +176,37 @@ nikc_processed_inhale <- nikc_processed_2 %>%
 
 Final step before making sankey diagram is to created dataframe with nano fate information.
 
+```{r}
+#------Creating Sankey------#
+fate.df <- data.frame("Aspiration" = c(0.28, 0, 0, 0, 0, 0, 0),
+                   "Intranasal" = c(0, 1, 0.25, 0.20, 0, 0, 0),
+                   "Intravenous" = c(0.14, 0, 0.5, 0.4, 1, 0.5, 0),
+                   "Gavage" = c(0.21, 0, 0.25, 0.40, 0, 0.50, 0),
+                   "Semi-static" = c(0, 0, 0, 0, 0, 0, 1),
+                   "Inhalation" = c(0.36, 0, 0, 0, 0, 0, 0))
+rownames(fate.df) <- c("Lung", "Brain", "Spleen", "Liver", "Stomach", "Intestines", "Gill")
 
+#-----Creating long dataset------#
+fate.df_long <- fate.df %>%
+  rownames_to_column %>%
+  gather(key = 'key', value = 'value', -rowname) %>%
+  filter(value > 0)
+colnames(fate.df_long) <- c("source", "target", "value")
+fate.df_long$target <- paste(fate.df_long$target, " ", sep="")
+
+#--From these flows we need to create a node data frame: it lists every entities involved in the flow--#
+nodes <- data.frame(name=c(as.character(fate.df_long$source), as.character(fate.df_long$target)) %>% unique())
+
+#--With networkD3, connection must be provided using id, not using real name like in the links dataframe.. So we need to reformat it--#
+fate.df_long$IDsource=match(fate.df_long$source, nodes$name)-1 
+fate.df_long$IDtarget=match(fate.df_long$target, nodes$name)-1
+
+# prepare colour scale
+ColourScal ='d3.scaleOrdinal() .range(["#FDE725FF","#B4DE2CFF","#6DCD59FF","#35B779FF","#1F9E89FF","#26828EFF","#31688EFF","#3E4A89FF","#482878FF","#440154FF"])'
+
+# Make the Network
+sankeyNetwork(Links = fate.df_long, Nodes = nodes,
+              Source = "IDsource", Target = "IDtarget",
+              Value = "value", NodeID = "name", 
+              sinksRight=FALSE, colourScale=ColourScal, nodeWidth=40, fontSize=13, nodePadding=20)
+```
