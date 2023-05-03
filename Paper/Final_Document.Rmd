@@ -91,10 +91,89 @@ nikc_processed_2 <- nikc_raw %>%
 unique(nikc_processed_2$datasetId)
 
 ```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+ The second step of this wrangling session is to identify which organs were recorded.
 
 ```{r Wrangling.attempt 2}
+#--------Identifying which organs were recorded-------#
+nikc_processed_organ <- nikc_processed_2 %>%
+  filter(parameter == "Organ")
 
+#----Checking which organs are recorded-----#
+unique(nikc_processed_organ$parameterText) 
 
+#--------Checking if there are differences between organ and Organ-------#
+nikc_processed_organ2 <- nikc_processed_2 %>%
+  filter(parameter == "organ")
+#----Checking which organs are recorded-----#
+unique(nikc_processed_organ2$parameterText) 
 ```
+
+
+The third step is find which exposure routes are linked to which organs.
+```{r Wrangling attempt 3}
+#------test-----#
+nikc_processed_test <- nikc_processed_2 %>%
+  filter(datasetId == "10.1016/j.toxlet.2015.07.001") %>%
+  filter(parameter == "Exposure route of administration" | parameter == "Organ") 
+
+#------Oropharyngeal aspiration-----#
+nikc_processed_asp <- nikc_processed_2 %>%
+  filter(parameterText == "Oropharyngeal aspiration" |
+          parameterText == "pharyngeal aspiration" |
+          parameterText == "oropharyngeal aspiration" |
+          parameterText == "pharyngeal aspiration"|
+          parameterText == "Pharyngeal aspiration" |
+          parameter == "Organ") %>%
+  select(datasetId, parameter, parameterText)
+
+unique(nikc_processed_asp$datasetId)
+
+#------Intranasal Administration-----#
+nikc_processed_nasal <- nikc_processed_2 %>%
+  filter(parameterText == "Intranasal administration" |
+        parameter == "Organ") %>%
+  select(datasetId, parameter, parameterText)
+
+unique(nikc_processed_nasal$datasetId)
+
+#------Intravenous-----#
+nikc_processed_vein <- nikc_processed_2 %>%
+  filter(parameterText == "single i.v. tail vein injection" |
+         parameterText == "Intravenous" |
+         parameterText == "Microinjection" |
+        parameter == "Organ") %>%
+  select(datasetId, parameter, parameterText)
+
+unique(nikc_processed_vein$datasetId)
+
+#------throat-----#
+nikc_processed_throat <- nikc_processed_2 %>%
+  filter(parameterText == "Gavage" |
+         parameterText == "instilled into the trachea using a 18G indwelling needle" |
+         parameterText == "intratracheal" |
+        parameterText == "Intratracheal instillation" |
+        parameter == "Organ") %>%
+  select(datasetId, parameter, parameterText)
+
+#------Diet-----#
+nikc_processed_diet <- nikc_processed_2 %>%
+  filter(parameterText == "Diet" |
+        parameter == "Organ") %>%
+  select(datasetId, parameter, parameterText)
+
+#------Semi-Static----#
+nikc_processed_semi <- nikc_processed_2 %>%
+  filter(parameterText == "semi-static") %>%
+  select(datasetId, parameter, parameterText)
+
+#------Inhalation-------#
+nikc_processed_inhale <- nikc_processed_2 %>%
+  filter(parameterText == "Inhalation" |
+         parameterText == "inhalation") %>%
+  select(datasetId, parameter, parameterText)
+```
+
+
+Final step before making sankey diagram is to created dataframe with nano fate information.
+
+
