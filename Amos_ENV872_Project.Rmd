@@ -65,11 +65,14 @@ The remaining columns will not be described here as they not involved in the wra
 
 # Exploratory Analysis of Raw Dataset
 
-Below is an overview of the NIKC database.
+Below is an overview of the NIKC database, and can be viewed in the pie charts and bar graph (figure 2, Amos et. al.)
 
 ```{r Overview of NIKC raw, eval=TRUE, echo=FALSE}
 glimpse(nikc_raw)
 ```
+
+![Figure 2. Exploratory analysis of NIKC](/Users/jaleesiad.amos/Documents/Amos_ENV872_FinalProject/Figure/Figure 6_Database Stats_Use Color.jpg)
+
 \newpage
 
 # Data Wrangling Process
@@ -259,7 +262,7 @@ The 'flows' are specifically indicating percentages. Other sources have indicate
 A quick introduction to the interactive Sankey diagram since this chart type was not reviewing in the course. If readers hover their mouse over a specific node, the resulting 'flows' from that node will be highlighted. This can be done from any node in the right or left columns. The flows themselves can be highlighted as well.
 
 
-```{r Sankey, eval=TRUE, echo=FALSE, fig.cap="Figure 2. Nanomaterial organ fate based on exposure route"}
+```{r Sankey, eval=TRUE, echo=FALSE, fig.cap="Figure 3. Nanomaterial organ fate based on exposure route"}
 #------Creating Sankey------#
 fate.df <- data.frame("Aspiration" = c(0.28, 0, 0, 0, 0, 0, 0),
                    "Intranasal" = c(0, 1, 0.25, 0.20, 0, 0, 0),
@@ -310,9 +313,12 @@ There is an important caveat to this Sankey diagram, which is that data construc
 
 In summary, this research question represents the first known analysis of the NIKC database. Although, the Sankey diagram may not give a complete picture of nanomaterial fate for previously discussed reasons, it does indicate the need for databases such as the NIKC. Understanding of nanomaterials cannot be understand from one study, but identifying patterns and the underlying processes governing nanomaterial behavior can be gleaned from more comprehensive data analysis. 
 
+*Please note, that while the some aspects of the 'README' file were taken from the original publication. All written work in this documnent is original and has not been published.*
+
 \newpage
 # Acknowledgments
-Construction of the NIKC database was a collaborative endeavor (see publication for co-authors). Also, the analysis of the Sankey diagram could not have been completed without consulting with fellow lab members and Nicholas School collaborators.
+Construction of the NIKC database was a collaborative endeavor (see publication for co-authors). Also, the analysis of the Sankey diagram could not have been completed without consulting with fellow lab members and Nicholas School collaborators. Data wrangling of the raw dataset could not have been completed without course materials from instructors and TAs of the spring 2023 course. Thank you!
+
 
 \newpage
 
