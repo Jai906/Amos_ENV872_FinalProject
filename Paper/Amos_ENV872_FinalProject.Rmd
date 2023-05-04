@@ -1,0 +1,336 @@
+---
+title: 'Understanding routes of nanomaterial toxicity in exposed organisms' 
+subtitle: 'https://github.com/Jai906/Amos_ENV872_FinalProject.git'
+author: "Jaleesia Amos"
+output: 
+  html_document:
+  toc: true
+  number_sections: true
+---
+\newpage
+\tableofcontents 
+\newpage
+\listoftables 
+\newpage
+
+```{r setup, include=FALSE}
+# Set your working directory
+getwd()
+
+# Load your packages
+pacman::p_load(tidyverse, here, knitr, viridis, patchwork, hrbrthemes, circlize, networkD3)
+
+# Set your ggplot theme
+#----Custom theme: change title, axis title, and legend----#
+jatheme <- theme_bw(base_size = 12) + 
+  theme(plot.title = element_text(face ="bold", hjust = 0.5),
+        axis.title = element_text(face = "bold"), 
+        legend.position = "right")
+
+#-----Set theme for environment-----#
+theme_set(jatheme)
+
+# Load your datasets
+nikc_raw <- read.csv("./Data/Raw/nikc_raw_20200326.csv", stringsAsFactors = TRUE)
+```
+
+
+# Rationale and Research Question
+Nanomaterials can be found in a broad range of consumer products due to their unique properties which separates them from their bulk counter parts. Most consumers will be exposed to nanomaterials according to what they eat and touch. For example, the food industry has found multiple uses for nanomaterials including as packaging and food additives (Mitrano 2015). In instances where the nanomaterial is embedded in the packaging, the nanomaterial can leach out of the packaging and into food. More specifically, nanosilver has many legitimate antimicrobial uses when incorporated into clothing and can also be found in beauty products as a treatment for acne (Reed 2016). These examples represent dermal and oral human exposures to the nanomaterial component of the composite material. Nanomaterials not only pose potential risks to consumers, but also to the environment.
+
+Environmental exposures to nanomaterials can occur through intentional and unintentional occurrences. Nanomaterials are able to be move through environmental compartments that their bulk counterparts are excluded from due to their size. Nanomaterials therefore present an opportunity to address many of the oncoming issues in food security. Nano-agriculture is a growing field in which nanomaterials are engineered for targeted delivery and specified purposes (Lowry 2019). As previously mentioned, nanomaterials are added to a wide range of consumer products. These nano-enabled products can break down in the environment when they are not properly disposed of, or released into our water supply. Break down of nano-enabled products represents unintentional environmental exposures.
+
+The route of nanomaterial exposure for both humans and environmental organisms frequently depends upon the intended use of nano-enabled products, the improper disposal of nanomaterials, or the intentional use nanomaterials in agriculture. Therefore, this project is focused on one main goal: determining if the exposure route impacts the fate of the nanomaterial in an organism. In this case, the fate will be determined by the organ where the nanomaterial is found.
+
+\newpagep
+
+# Dataset Information
+
+The Center for the Environmental Implications of Nano Technology (CEINT) at Duke University developed the NanoInformatics Knowledge Commons (NIKC) Database as a repository for pristine nanomaterial toxicity data. The database was curated by the author and was intended to be used by regulatory agencies to estimate toxicity responses to nanomaterials from composite products. The NIKC database has a unique data organization structure specifically designed to follow the transformational changes of nanomaterials in different media. This structure was necessary as nanomaterial transformations also change their properties and therefore their toxicity.
+
+Data curated into the database was procured from published literature. Where each individual dataset of the collective NIKC dataset is represented by the digital object identifier (DOI) to redirect users to the original published source. It is necessary to briefly describe the columns of the dataset to understand the wrangling process discussed later. Since the NIKC database was built to store a variety of toxicity data, the columns or variables are not predescribed like previous datasets reviewed throughout the course. 
+
+'datasetId' column: list the DOI of the original data points. 
+'measurementType' column: where the data is categorized into NIKC specific categories (figure 1).
+'parameter' column: the traditional 'variable'. For example, "nanomaterial", or "organ"
+'parameterText': describes the variable in the parameter column. For example, "multi-walled carbon nanotubes" to describe the "nanomaterial" and "liver" describes the "organ".
+
+The remaining columns will not be described here as they not involved in the wrangling process for this analysis. The complete dataset is represented in this analysis by 'nikc_raw' which consists of 27 variables and ~35,700 observations. Observations curated into the NIKC come from 120 published pristine nanomaterial toxicity studies. For a complete description of NIKC database, please see publication (Amos 2021).
+
+\newpage
+
+![Figure 1. NIKC Instance structure](/Users/jaleesiad.amos/Documents/Amos_ENV872_FinalProject/Figure/Figure 3_NIKC Concept_Use Color.jpg)
+
+\newpage
+
+# Exploratory Analysis of Raw Dataset
+
+Below is an overview of the NIKC database, and can be viewed in the pie charts and bar graph (figure 2, Amos et. al.)
+
+```{r Overview of NIKC raw, eval=TRUE, echo=FALSE}
+glimpse(nikc_raw)
+```
+
+![Figure 2. Exploratory analysis of NIKC](/Users/jaleesiad.amos/Documents/Amos_ENV872_FinalProject/Figure/Figure 6_Database Stats_Use Color.jpg)
+
+\newpage
+
+# Data Wrangling Process
+
+The main question of this analysis is to determine if the route of exposure impacts the internal fate of the nanomaterial in an organism. Since the collective NIKC dataset consists of individual datasets addressing various research questions, it was necessary to wrangle the dataset to find the appropriate data points The data wrangling process occurred in four steps.
+
+Step one: Identify which datasets record the 'exposure route of administration' and eliminate exposure routes classified as 'dispersion'. Dispersion studies indicate cell line exposures, or not the whole organism. Please note, the returned exposure routes list from this step is larger than the finalized exposure routes list. This is because some routes were combined (i.e. 'oropharyngeal aspiration' and 'Oropharyngeal aspiration'). See table 1 for final list of exposure routes.
+
+```{r Wrangling.attempt 1, eval=TRUE, echo=FALSE, include=FALSE}
+#-----identifying datasets with exposure routes listed-----#
+#______remove dispersion studies______#
+nikc_processed_1 <- nikc_raw %>%
+  filter(parameter == "Exposure route of administration") %>%
+  filter(parameterText != "dispersion") %>%
+  filter(parameterText != "Dispersion")
+
+#----Checking that dispersion studies were removed-----#
+unique(nikc_processed_1$parameterText)
+
+#-----Identify unique DOIs from first processed dataset----#
+unique(nikc_processed_1$datasetId)
+
+
+#-----Created subset with DOIs of exposure routes not dispersion-----#
+#____should be 28 DOIs based on unique DOIs____#
+nikc_processed_2 <- nikc_raw %>%
+  filter(datasetId == "10.1016/j.toxlet.2015.07.001" | 
+        datasetId == "10.1016/j.ntt.2015.08.006" | 
+        datasetId == "10.1016/j.toxlet.2008.07.020" | 
+        datasetId == "10.1016/j.carbon.2007.03.035" |
+        datasetId == "10.1016/j.taap.2007.03.018" |
+        datasetId == "10.1016/j.tox.2010.07.021" |
+        datasetId == "10.1016/j.taap.2008.12.006" |
+        datasetId == "10.3109/17435390.2010.502978" |
+        datasetId == "10.1016/j.aquatox.2007.02.003" |
+        datasetId == "10.1021/es4046023" |
+        datasetId == "10.2147/IJN.S123345" |
+        datasetId == "10.1016/j.tox.2009.10.017" |
+        datasetId == "10.1002/smll.201301597" |
+        datasetId == "10.1186/s12989-014-0052-6" |
+        datasetId == "10.3390/nano7120441" |
+        datasetId == "10.1016/j.etp.2014.09.005" |
+        datasetId == "10.3109/17435390.2012.719649" |
+        datasetId == "10.1186/1743-8977-10-33" |
+        datasetId == "10.1186/1743-8977-8-24" |
+        datasetId == "10.1021/nn503887r" |
+        datasetId == "10.1093/carcin/bgm243" |
+        datasetId == "10.1093/toxsci/kfp247" |
+        datasetId == "10.1007/s10517-015-2835-7" |
+        datasetId == "10.1093/toxsci/kfs172" |
+        datasetId == "10.3109/17435390.2014.933903" |
+        datasetId == "10.3109/17435390.2013.779757" |
+        datasetId == "10.1177/0192623317732303" |
+        datasetId == "10.1016/j.bbrc.2015.01.130")
+
+#-----Checking DOIs are correct------#
+unique(nikc_processed_2$datasetId)
+
+```
+
+           Table 1: Final exposure routes 
+---------  -----------------
+        1  Aspiration
+        2  Gavage
+        3  Inhalation
+        4  Intranasal
+        5  Intravenous
+        6  Semi-static
+---    
+           
+Step two: Identify which organs were recorded in the dataset. Please note, the returned organs list from this step is larger than the finalized organ list. This is because some individual organs were combined (i.e. 'cortex', 'hippocampus', 'lateral ventricles' are parts of the brain). See table 2 for the final list of organs.
+
+```{r Wrangling.attempt 2, eval=TRUE, echo=FALSE, include=FALSE}
+#--------Identifying which organs were recorded-------#
+nikc_processed_organ <- nikc_processed_2 %>%
+  filter(parameter == "Organ")
+
+#----Checking which organs are recorded-----#
+unique(nikc_processed_organ$parameterText) 
+
+#--------Checking if there are differences between organ and Organ-------#
+nikc_processed_organ2 <- nikc_processed_2 %>%
+  filter(parameter == "organ")
+#----Checking which organs are recorded-----#
+unique(nikc_processed_organ2$parameterText) 
+```
+
+           Table 2: Final organs lists
+---------  -----------------
+        1  Brain
+        2  Gill
+        3  Intestines
+        4  Liver
+        5  Lung
+        6  Spleen
+        7  Stomach
+---
+
+Step three: Determine which exposure routes are linked to which organs.
+
+```{r Wrangling attempt 3, eval=TRUE, echo=FALSE, include=FALSE}
+#------test-----#
+nikc_processed_test <- nikc_processed_2 %>%
+  filter(datasetId == "10.1016/j.toxlet.2015.07.001") %>%
+  filter(parameter == "Exposure route of administration" | parameter == "Organ") 
+
+#------Oropharyngeal aspiration-----#
+nikc_processed_asp <- nikc_processed_2 %>%
+  filter(parameterText == "Oropharyngeal aspiration" |
+          parameterText == "pharyngeal aspiration" |
+          parameterText == "oropharyngeal aspiration" |
+          parameterText == "pharyngeal aspiration"|
+          parameterText == "Pharyngeal aspiration" |
+          parameter == "Organ") %>%
+  select(datasetId, parameter, parameterText)
+
+unique(nikc_processed_asp$datasetId)
+
+#------Intranasal Administration-----#
+nikc_processed_nasal <- nikc_processed_2 %>%
+  filter(parameterText == "Intranasal administration" |
+        parameter == "Organ") %>%
+  select(datasetId, parameter, parameterText)
+
+unique(nikc_processed_nasal$datasetId)
+
+#------Intravenous-----#
+nikc_processed_vein <- nikc_processed_2 %>%
+  filter(parameterText == "single i.v. tail vein injection" |
+         parameterText == "Intravenous" |
+         parameterText == "Microinjection" |
+        parameter == "Organ") %>%
+  select(datasetId, parameter, parameterText)
+
+unique(nikc_processed_vein$datasetId)
+
+#------throat-----#
+nikc_processed_throat <- nikc_processed_2 %>%
+  filter(parameterText == "Gavage" |
+         parameterText == "instilled into the trachea using a 18G indwelling needle" |
+         parameterText == "intratracheal" |
+        parameterText == "Intratracheal instillation" |
+        parameter == "Organ") %>%
+  select(datasetId, parameter, parameterText)
+
+#------Diet-----#
+nikc_processed_diet <- nikc_processed_2 %>%
+  filter(parameterText == "Diet" |
+        parameter == "Organ") %>%
+  select(datasetId, parameter, parameterText)
+
+#------Semi-Static----#
+nikc_processed_semi <- nikc_processed_2 %>%
+  filter(parameterText == "semi-static") %>%
+  select(datasetId, parameter, parameterText)
+
+#------Inhalation-------#
+nikc_processed_inhale <- nikc_processed_2 %>%
+  filter(parameterText == "Inhalation" |
+         parameterText == "inhalation") %>%
+  select(datasetId, parameter, parameterText)
+```
+
+Step four: Create a data frame with nano-fate information.
+
+```{r fate dataframe, eval=TRUE}
+#------Fate dataframe-----#
+fate.df <- data.frame("Aspiration" = c(0.28, 0, 0, 0, 0, 0, 0),
+                   "Intranasal" = c(0, 1, 0.25, 0.20, 0, 0, 0),
+                   "Intravenous" = c(0.14, 0, 0.5, 0.4, 1, 0.5, 0),
+                   "Gavage" = c(0.21, 0, 0.25, 0.40, 0, 0.50, 0),
+                   "Semi-static" = c(0, 0, 0, 0, 0, 0, 1),
+                   "Inhalation" = c(0.36, 0, 0, 0, 0, 0, 0))
+rownames(fate.df) <- c("Lung", "Brain", "Spleen", "Liver", "Stomach", "Intestines", "Gill")
+
+glimpse(fate.df)
+```
+# Analysis
+
+
+## Question 1: Does the exposure route impact the fate of the nanomaterial in an organism?
+
+Since the objective is observe the flow of nanomaterials in an organism to it's fate, it was decided that a flow diagram was most appropriate to address the research question. As this is an individual project and is addressing one main research question an additional challenge was taken on to create a diagram not previously reviewed in the course (Holtz 2023).
+
+The 'flows' are specifically indicating percentages. Other sources have indicated that flows can represent count data (Marsja 2023). Percentages were determined according to links between exposure and flow. For example, intestines have two 'flows' each of equal width. This is because 50% of nanomaterials that are found in the intestines come from the intravenous exposure route and the other 50% from gavage.
+
+A quick introduction to the interactive Sankey diagram since this chart type was not reviewing in the course. If readers hover their mouse over a specific node, the resulting 'flows' from that node will be highlighted. This can be done from any node in the right or left columns. The flows themselves can be highlighted as well.
+
+
+```{r Sankey, eval=TRUE, echo=FALSE, fig.cap="Figure 3. Nanomaterial organ fate based on exposure route"}
+#------Creating Sankey------#
+fate.df <- data.frame("Aspiration" = c(0.28, 0, 0, 0, 0, 0, 0),
+                   "Intranasal" = c(0, 1, 0.25, 0.20, 0, 0, 0),
+                   "Intravenous" = c(0.14, 0, 0.5, 0.4, 1, 0.5, 0),
+                   "Gavage" = c(0.21, 0, 0.25, 0.40, 0, 0.50, 0),
+                   "Semi-static" = c(0, 0, 0, 0, 0, 0, 1),
+                   "Inhalation" = c(0.36, 0, 0, 0, 0, 0, 0))
+rownames(fate.df) <- c("Lung", "Brain", "Spleen", "Liver", "Stomach", "Intestines", "Gill")
+
+#-----Creating long dataset------#
+fate.df_long <- fate.df %>%
+  rownames_to_column %>%
+  gather(key = 'key', value = 'value', -rowname) %>%
+  filter(value > 0)
+colnames(fate.df_long) <- c("source", "target", "value")
+fate.df_long$target <- paste(fate.df_long$target, " ", sep="")
+
+#--From these flows we need to create a node data frame: it lists every entities involved in the flow--#
+nodes <- data.frame(name=c(as.character(fate.df_long$source), as.character(fate.df_long$target)) %>% unique())
+
+#--With networkD3, connection must be provided using id, not using real name like in the links dataframe.. So we need to reformat it--#
+fate.df_long$IDsource=match(fate.df_long$source, nodes$name)-1 
+fate.df_long$IDtarget=match(fate.df_long$target, nodes$name)-1
+
+# prepare colour scale
+ColourScal ='d3.scaleOrdinal() .range(["#FDE725FF","#B4DE2CFF","#6DCD59FF","#35B779FF","#1F9E89FF","#26828EFF","#31688EFF","#3E4A89FF","#482878FF","#440154FF"])'
+
+# Make the Network
+sankeyNetwork(Links = fate.df_long, Nodes = nodes,
+              Source = "IDsource", Target = "IDtarget",
+              Value = "value", NodeID = "name", 
+              sinksRight=FALSE, colourScale=ColourScal, nodeWidth=40, fontSize=13, nodePadding=20)
+```
+
+
+
+\newpage
+
+# Summary and Conclusions
+
+The Sankey Diagram illustrating the fate of the nanomaterial by exposure route indicates that the exposure does impact which organ the nanomaterial is fated. For example, nanomaterials that are introduced into the organism intravenously are found in the largest variety of organs. This is important to note as nanomaterials are also used for biomedical innovations as diagnosis and medication delivery methods. 
+
+Gavage is a method used to insert nanomaterials directly into the gut to ensure nanomaterial delivery, and yet none of the nanomaterials inserted via gavage were found in the stomach. After discussing with collaborators who performed some of the exposure experiments at the Nicholas School, this may be due to the highly acidic environment of the stomach. 
+
+There were a few more intuitive results. For example, semi-static exposures, are specifically used in fish studies, where the nanomaterial is added to the aqueous environment. It therefore is understandable that the nanomaterials would be found in the gills. The same is true for the inhalation exposure route which result in the lungs.
+
+There is an important caveat to this Sankey diagram, which is that data constructing the diagram comes from individual studies. This is an important consideration because the researchers may have selected which organs to survey instead of surveying all of the organs. Therefore, the Sankey flow may convey an incomplete picture of nanomaterial fate. For example, few studies surveyed the brain. Also, the literature was lacking in dermal studies. As mentioned in the rationale and research section, nanomaterials are added into skincare products, which can cross the dermis into the epidermis layer. This represents another essential gap in the dataset.
+
+In summary, this research question represents the first known analysis of the NIKC database. Although, the Sankey diagram may not give a complete picture of nanomaterial fate for previously discussed reasons, it does indicate the need for databases such as the NIKC. Understanding of nanomaterials cannot be understand from one study, but identifying patterns and the underlying processes governing nanomaterial behavior can be gleaned from more comprehensive data analysis. 
+
+*Please note, that while the some aspects of the 'README' file were taken from the original publication. All written work in this documnent is original and has not been published.*
+
+\newpage
+# Acknowledgments
+Construction of the NIKC database was a collaborative endeavor (see publication for co-authors). Also, the analysis of the Sankey diagram could not have been completed without consulting with fellow lab members and Nicholas School collaborators. Data wrangling of the raw dataset could not have been completed without course materials from instructors and TAs of the spring 2023 course. Thank you!
+
+
+\newpage
+
+# References
+<Amos, J. D. et al. The NanoInformatics Knowledge Commons: Capturing spatial and temporal nanomaterial transformations in diverse systems. NanoImpact 23, 100331 (2021).> 
+
+<Lowry, G. V., Avellan, A. & Gilbertson, L. M. Opportunities and challenges for nanotechnology in the agri-tech revolution. Nat. Nanotechnol. 14, 517-522 (2019). >
+
+<Marsja, Erik. How to Create a Sankey Plot in R: 4 Methods. 'https://www.marsja.se/create-a-sankey-plot-in-r-ggplot2-plotly/' (2023).>
+
+<Mitrano, D. M., Motellier, S., Clavaguera, S. & Nowack, B. Review of nanomaterial aging and transformations through the life cycle of nano-enhanced products. Environment International 77, 132-147 (2015).>
+
+<Reed, R. B. et al. Potential Environmental Impacts and Antimicrobial Efficacy of Silver- and Nanosilver-Containing Textiles. Environmental Science & Technology 50, 4018-4026 (2016).>
+
+<Holtz, Yan. 'https://r-graph-gallery.com/about.html'>
